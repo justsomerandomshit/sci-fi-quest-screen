@@ -1,0 +1,783 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sci-Fi Quest Screen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reuse existing styles and add new ones for clarity */
+        :root {
+        --primary-color: #18e8ff;
+        --primary-glow: #18e8ff;
+        --secondary-color: #0077b6;
+        --dark-bg: rgba(0, 12, 24, 0.85);
+        --darker-bg: rgba(0, 6, 12, 0.92);
+        --text-color: #ffffff;
+        --border-color: rgba(24, 232, 255, 0.7);
+        }
+
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+
+        body {
+        background-color: #000;
+        font-family: 'Rajdhani', sans-serif;
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        }
+
+        .quest-screen { /* Reused */
+        width: 100%;
+        max-width: 800px;
+        background-color: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 0 20px rgba(24, 232, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        }
+
+        .holographic-border { /* Reused */ position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid var(--primary-color); box-shadow: 0 0 15px var(--primary-glow), inset 0 0 15px var(--primary-glow); pointer-events: none; z-index: 0; background: linear-gradient(to right, transparent 2%, var(--border-color) 2%, var(--border-color) 3%, transparent 3%) top left/100% 100%, linear-gradient(to right, transparent 97%, var(--border-color) 97%, var(--border-color) 98%, transparent 98%) top left/100% 100%, linear-gradient(to bottom, transparent 2%, var(--border-color) 2%, var(--border-color) 3%, transparent 3%) top left/100% 100%, linear-gradient(to bottom, transparent 97%, var(--border-color) 97%, var(--border-color) 98%, transparent 98%) top left/100% 100%; background-repeat: no-repeat; }
+        .corner-bracket { /* Reused */ position: absolute; width: 30px; height: 30px; border: 2px solid var(--primary-color); box-shadow: 0 0 10px var(--primary-glow); }
+        .corner-top-left { /* Reused */ top: 5px; left: 5px; border-right: none; border-bottom: none; }
+        .corner-top-right { /* Reused */ top: 5px; right: 5px; border-left: none; border-bottom: none; }
+        .corner-bottom-left { /* Reused */ bottom: 5px; left: 5px; border-right: none; border-top: none; }
+        .corner-bottom-right { /* Reused */ bottom: 5px; right: 5px; border-left: none; border-top: none; }
+        .grid-lines { /* Reused */ position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, transparent 50%, rgba(24, 232, 255, 0.05) 50%) 0 0/50px 100%, linear-gradient(to bottom, transparent 50%, rgba(24, 232, 255, 0.05) 50%) 0 0/100% 50px; opacity: 0.3; pointer-events: none; }
+        .content-wrapper { /* Reused */ position: relative; z-index: 1; width: 100%; padding: 40px 30px; }
+        .header-box { /* Reused */ background-color: var(--darker-bg); border: 1px solid var(--border-color); box-shadow: 0 0 10px rgba(24, 232, 255, 0.2); text-align: center; padding: 10px; margin-bottom: 30px; position: relative; }
+        .digital-effect { /* Reused */ position: absolute; top: -5px; left: 0; width: 100%; height: 5px; background: linear-gradient(to right, transparent, var(--primary-color), transparent); opacity: 0.7; }
+        .button-row { /* Reused */ display: flex; justify-content: center; gap: 10px; margin-top: 20px; width: 100%; max-width: 700px; }
+        .custom-button { /* Reused */ flex: 1; background-color: rgba(0, 12, 24, 0.7); color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 5px rgba(24, 232, 255, 0.3); }
+        .custom-button:hover { /* Reused */ background-color: rgba(24, 232, 255, 0.2); box-shadow: 0 0 10px var(--primary-glow); }
+        .hidden { /* Reused */ display: none; }
+        .notification { /* Reused */ position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--darker-bg); border: 1px solid var(--border-color); color: var(--primary-color); padding: 15px 20px; border-radius: 4px; box-shadow: 0 0 20px rgba(24, 232, 255, 0.3); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
+        .notification.show { /* Reused */ opacity: 1; }
+        .loading-spinner { /* Reused */ display: none; width: 40px; height: 40px; border: 4px solid rgba(24, 232, 255, 0.2); border-radius: 50%; border-top: 4px solid var(--primary-color); animation: spin 1s linear infinite; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
+        @keyframes spin { /* Reused */ 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        .delete-skill-button { /* Reused */ position: absolute; top: 10px; right: 10px; background-color: rgba(150, 0, 0, 0.7); color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 5px rgba(24, 232, 255, 0.3); font-size: 0.8rem; }
+        .delete-skill-button:hover { /* Reused */ background-color: rgba(200, 0, 0, 0.8); box-shadow: 0 0 10px var(--primary-glow); }
+        .skill-icon-selector select option:before { /* Reused */ font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-right: 5px; content: attr(data-icon); }
+        .customize-title { /* Reused */ font-family: 'Orbitron', sans-serif; font-size: 1.4rem; margin-bottom: 15px; color: var(--primary-color); text-shadow: 0 0 5px var(--primary-glow); text-align: center; }
+        .form-row { /* Reused */ display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; position: relative; }
+        .form-group { /* Reused */ margin-bottom: 10px; }
+        .label { /* Reused */ display: block; margin-bottom: 5px; font-size: 0.9rem; opacity: 0.9; color: var(--primary-color); }
+        .quest-icon-selector { /* Reused */ width: 100%; margin-bottom: 10px; }
+        .quest-icon-selector select { /* Reused */ width: 100%; padding: 8px; background-color: rgba(0, 12, 24, 0.7); color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 1.2rem; text-align: left; appearance: auto; -webkit-appearance: auto; -moz-appearance: auto; font-family: 'Rajdhani', sans-serif; font-weight: normal; text-shadow: none; }
+        .quest-name-input { /* Reused */ width: 100%; padding: 8px; background-color: rgba(0, 12, 24, 0.7); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; }
+        .quest-description-textarea { /* Reused */ width: 100%; padding: 8px; background-color: rgba(0, 12, 24, 0.7); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-family: 'Rajdhani', sans-serif; font-size: 1rem; resize: vertical; min-height: 80px; margin-bottom: 10px; }
+        .quest-objective-input { /* Reused */ width: 100%; padding: 8px; background-color: rgba(0, 12, 24, 0.7); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-family: 'Rajdhani', sans-serif; font-size: 1rem; margin-bottom: 5px; }
+        .add-objective-button, .delete-objective-button { /* Reused */ background-color: rgba(0, 50, 100, 0.7); color: var(--primary-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 5px rgba(24, 232, 255, 0.3); font-size: 0.8rem; margin-top: 5px; }
+        .delete-objective-button { /* Reused */ background-color: rgba(150, 0, 0, 0.7); }
+        .delete-objective-button:hover { /* Reused */ background-color: rgba(200, 0, 0, 0.8); }
+        .quest-timer-input, .quest-warning-input { /* Reused */ width: 100%; padding: 8px; background-color: rgba(0, 12, 24, 0.7); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-family: 'Rajdhani', sans-serif; font-size: 1rem; margin-bottom: 10px; }
+
+
+        .quests-title { /* Reused */
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--primary-color);
+        text-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .quest-list { /* Reused */
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        }
+
+        .quest-item-display { /* Reused */
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px;
+        background-color: var(--darker-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(24, 232, 255, 0.2);
+        }
+
+        .quest-icon-display { /* Reused */
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        background-color: rgba(0, 12, 24, 0.5);
+        box-shadow: 0 0 5px rgba(24, 232, 255, 0.3);
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        text-shadow: 0 0 5px var(--primary-glow);
+        }
+
+        .quest-info-display { /* Reused */
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        }
+
+        .quest-name-display { /* Reused */
+        font-size: 1.4rem;
+        font-weight: 600;
+        }
+
+        .quest-description-display { /* Reused */
+        font-size: 1rem;
+        opacity: 0.8;
+        margin-bottom: 10px;
+        }
+
+        .quest-objectives-display, .quest-rewards-display { /* Style for both objectives and rewards lists */
+        font-size: 1rem;
+        opacity: 0.9;
+        padding-left: 20px;
+        }
+
+        .quest-rewards-display-title, .quest-objectives-display-title { /* New titles for Objectives and Rewards */
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: var(--primary-color); /* Example color, adjust as needed */
+        }
+
+        .customize-quests-panel { /* Reused */
+        width: 100%;
+        max-width: 800px;
+        background-color: var(--darker-bg);
+        border: 1px solid var(--border-color);
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 0 20px rgba(24, 232, 255, 0.3);
+        }
+
+
+        .quest-rewards-container { /* Reused */
+        margin-bottom: 10px;
+        }
+
+        .quest-reward-input { /* Reused */
+        width: 100%;
+        padding: 8px;
+        background-color: rgba(0, 12, 24, 0.7);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--text-color);
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+        margin-bottom: 5px;
+        }
+
+        .add-reward-button, .delete-reward-button { /* Reused */
+        background-color: rgba(0, 50, 100, 0.7);
+        color: var(--primary-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 0 5px rgba(24, 232, 255, 0.3);
+        font-size: 0.8rem;
+        margin-top: 5px;
+        }
+
+        .delete-reward-button { /* Reused */
+        background-color: rgba(150, 0, 0, 0.7);
+        }
+
+        .delete-reward-button:hover { /* Reused */
+        background-color: rgba(200, 0, 0, 0.8);
+        }
+
+        .quest-warning-display { /* New style for warning text */
+        color: red;
+        font-weight: bold;
+        margin-top: 10px;
+        }
+
+
+    </style>
+    </head>
+    <body>
+    <div class="quest-screen" id="quest-screen">
+        <div class="holographic-border"></div>
+        <div class="corner-bracket corner-top-left"></div>
+        <div class="corner-bracket corner-top-right"></div>
+        <div class="corner-bracket corner-bottom-left"></div>
+        <div class="corner-bracket corner-bottom-right"></div>
+        <div class="grid-lines"></div>
+
+        <div class="content-wrapper">
+        <div class="header-box">
+            <div class="digital-effect"></div>
+            <div class="quests-title">QUESTS</div>
+        </div>
+
+        <div class="quest-list" id="quest-list-display">
+            <!-- Quest items will be dynamically added here by JavaScript -->
+        </div>
+        </div>
+    </div>
+
+    <div class="button-row" style="margin-top: 20px; width: 100%; max-width: 800px;">
+        <button class="custom-button" id="toggle-customize-quests">Customize Quests</button>
+        <button class="custom-button" id="export-image">Export as Image</button>
+    </div>
+
+    <div class="customize-quests-panel hidden" id="customize-quests-panel">
+        <div class="customize-title">CUSTOMIZE YOUR QUESTS</div>
+        <div id="quest-list-customize">
+        <!-- Quest customization forms will be dynamically added here by JavaScript -->
+        </div>
+
+        <div class="button-row">
+        <button class="custom-button" id="cancel-customize-quests">Cancel</button>
+        <button class="custom-button save-button" id="save-customize-quests">Save Changes</button>
+        <button class="custom-button" id="add-quest">Add Quest</button>
+        </div>
+    </div>
+
+
+    <div class="notification" id="notification">Notification message</div>
+    <div class="loading-spinner" id="loading-spinner"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const exportButton = document.getElementById('export-image');
+        const notification = document.getElementById('notification');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const questListDisplay = document.getElementById('quest-list-display');
+        const questListCustomize = document.getElementById('quest-list-customize');
+        const customizeQuestsPanel = document.getElementById('customize-quests-panel');
+        const toggleCustomizeQuestsButton = document.getElementById('toggle-customize-quests');
+        const cancelCustomizeQuestsButton = document.getElementById('cancel-customize-quests');
+        const saveCustomizeQuestsButton = document.getElementById('save-customize-quests');
+        const addQuestButton = document.getElementById('add-quest');
+
+
+        // Sample Quest Data
+        let questsData = [
+            {
+            icon: 'fa-scroll',
+            name: 'The Lost Artifact',
+            description: 'A valuable artifact has been stolen from the city museum. Retrieve it before it falls into the wrong hands.',
+            objectives: ['Investigate the museum', 'Track down the thieves', 'Recover the artifact', 'Return artifact to the museum'],
+            rewards: ['100 Gold', 'Experience Points', 'Rare Potion'], // Added rewards array
+            timer: '24:00:00', // Optional timer in HH:MM:SS format
+            warning: 'The thieves are known to be heavily armed. Approach with caution!' // Optional warning
+            },
+            {
+            icon: 'fa-heart',
+            name: 'The Harem King',
+            description: 'A reincarnator is nothing without his harem! Do not be a useless ass and get your first girl!',
+            objectives: ['Get your first girl within a  week', 'Three in a month', 'Five in three months'],
+            rewards: ['Perk: Harem Lord', '500 Gold'], // Added rewards array
+            warning: "Don't disappoint the Administrator."
+            }
+        ];
+
+
+        // Function to render quest item for display
+        function renderQuestDisplay(quest, index) {
+            const questItemDisplay = document.createElement('div');
+            questItemDisplay.classList.add('quest-item-display');
+            questItemDisplay.dataset.questIndex = index;
+
+            const questIconDisplay = document.createElement('div');
+            questIconDisplay.classList.add('quest-icon-display');
+            const iconClass = quest.icon || 'fa-question';
+            questIconDisplay.innerHTML = `<i class="fas ${iconClass}"></i>`;
+
+            const questInfoDisplay = document.createElement('div');
+            questInfoDisplay.classList.add('quest-info-display');
+
+            const questNameDisplay = document.createElement('div');
+            questNameDisplay.classList.add('quest-name-display');
+            questNameDisplay.textContent = quest.name || 'Quest Name';
+
+            const questDescriptionDisplay = document.createElement('div');
+            questDescriptionDisplay.classList.add('quest-description-display');
+            questDescriptionDisplay.textContent = quest.description || 'Quest Description';
+
+            const questObjectivesDisplay = document.createElement('ul');
+            questObjectivesDisplay.classList.add('quest-objectives-display');
+            const objectivesTitle = document.createElement('li'); // Title for Objectives
+            objectivesTitle.classList.add('quest-objectives-display-title');
+            objectivesTitle.textContent = 'Objectives:';
+            questObjectivesDisplay.appendChild(objectivesTitle);
+            if (quest.objectives && quest.objectives.length > 0) {
+            quest.objectives.forEach(objective => {
+                const objectiveItem = document.createElement('li');
+                objectiveItem.textContent = objective;
+                questObjectivesDisplay.appendChild(objectiveItem);
+            });
+            } else {
+            const noObjectivesItem = document.createElement('li');
+            noObjectivesItem.textContent = 'No objectives defined.';
+            questObjectivesDisplay.appendChild(noObjectivesItem);
+            }
+
+            const questRewardsDisplay = document.createElement('ul'); // New rewards display
+            questRewardsDisplay.classList.add('quest-rewards-display');
+            const rewardsTitle = document.createElement('li'); // Title for Rewards
+            rewardsTitle.classList.add('quest-rewards-display-title');
+            rewardsTitle.textContent = 'Rewards:';
+            questRewardsDisplay.appendChild(rewardsTitle);
+            if (quest.rewards && quest.rewards.length > 0) {
+            quest.rewards.forEach(reward => {
+                const rewardItem = document.createElement('li');
+                rewardItem.textContent = reward;
+                questRewardsDisplay.appendChild(rewardItem);
+            });
+            } else {
+            const noRewardsItem = document.createElement('li');
+            noRewardsItem.textContent = 'No rewards defined.';
+            questRewardsDisplay.appendChild(noRewardsItem);
+            }
+
+            const questWarningDisplay = document.createElement('div'); // New warning display
+            questWarningDisplay.classList.add('quest-warning-display');
+            questWarningDisplay.textContent = quest.warning || ''; // Display warning if present
+
+
+            questInfoDisplay.appendChild(questNameDisplay);
+            questInfoDisplay.appendChild(questDescriptionDisplay);
+            questInfoDisplay.appendChild(questObjectivesDisplay);
+            questInfoDisplay.appendChild(questRewardsDisplay); // Append rewards display
+            questInfoDisplay.appendChild(questWarningDisplay); // Append warning display
+
+
+            questItemDisplay.appendChild(questIconDisplay);
+            questItemDisplay.appendChild(questInfoDisplay);
+
+            return questItemDisplay;
+        }
+
+
+        // Function to render quest customization form
+        function renderQuestCustomizeForm(quest, index) {
+            const formRow = document.createElement('div');
+            formRow.classList.add('form-row');
+            formRow.dataset.questIndex = index;
+
+            let objectivesHTML = '';
+            if (quest.objectives && quest.objectives.length > 0) {
+            quest.objectives.forEach((objective, objIndex) => {
+                objectivesHTML += `
+                <div class="form-group objective-group">
+                    <label for="quest-objective-${index}-${objIndex}" class="label">Objective ${objIndex + 1}:</label>
+                    <div style="display:flex; align-items: center; gap: 10px;">
+                        <input type="text" class="quest-objective-input" id="quest-objective-${index}-${objIndex}" value="${objective}" placeholder="Objective Description">
+                        <button type="button" class="delete-objective-button" data-quest-index="${index}" data-objective-index="${objIndex}">-</button>
+                    </div>
+                </div>`;
+            });
+            } else {
+            objectivesHTML += `
+                <div class="form-group objective-group">
+                    <label for="quest-objective-${index}-0" class="label">Objective 1:</label>
+                    <div style="display:flex; align-items: center; gap: 10px;">
+                        <input type="text" class="quest-objective-input" id="quest-objective-${index}-0" value="" placeholder="Objective Description">
+                    </div>
+                </div>`;
+            }
+
+
+            let rewardsHTML = ''; // New rewards HTML
+            if (quest.rewards && quest.rewards.length > 0) {
+            quest.rewards.forEach((reward, rewIndex) => {
+                rewardsHTML += `
+                <div class="form-group reward-group">
+                    <label for="quest-reward-${index}-${rewIndex}" class="label">Reward ${rewIndex + 1}:</label>
+                    <div style="display:flex; align-items: center; gap: 10px;">
+                        <input type="text" class="quest-reward-input" id="quest-reward-${index}-${rewIndex}" value="${reward}" placeholder="Reward Description">
+                        <button type="button" class="delete-reward-button" data-quest-index="${index}" data-reward-index="${rewIndex}">-</button>
+                    </div>
+                </div>`;
+            });
+            } else {
+            rewardsHTML += `
+                <div class="form-group reward-group">
+                    <label for="quest-reward-${index}-0" class="label">Reward 1:</label>
+                    <div style="display:flex; align-items: center; gap: 10px;">
+                        <input type="text" class="quest-reward-input" id="quest-reward-${index}-0" value="" placeholder="Reward Description">
+                    </div>
+                </div>`;
+            }
+
+
+            formRow.innerHTML = `
+            <div class="form-group">
+                <label for="quest-icon-${index}">Icon:</label>
+                <div class="quest-icon-selector">
+                <select class="icon-dropdown" id="quest-icon-${index}" data-quest-index="${index}">
+                    <option value="fa-question" data-icon="?"> Question Mark</option>
+                    <option value="fa-scroll" data-icon=""> Scroll</option>
+                    <option value="fa-sword" data-icon=""> Sword</option>
+                    <option value="fa-map-marker-alt" data-icon=""> Map Marker</option>
+                    <option value="fa-exclamation-triangle" data-icon=""> Warning</option>
+                    <option value="fa-flag-checkered" data-icon=""> Flag Checkered</option>
+                    <option value="fa-box-open" data-icon=""> Box Open</option>
+                    <option value="fa-users" data-icon=""> Users</option>
+                    <option value="fa-comments" data-icon=""> Comments</option>
+                    <option value="fa-shield-halved" data-icon=""> Shield</option>
+                    <!-- Add more Font Awesome quest-related icons here -->
+                </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="quest-name-${index}">Name:</label>
+                <input type="text" class="quest-name-input" id="quest-name-${index}" value="${quest.name || ''}" placeholder="Quest Name">
+            </div>
+            <div class="form-group">
+                <label for="quest-description-${index}">Description:</label>
+                <textarea class="quest-description-textarea" id="quest-description-${index}" value="${quest.description || ''}" placeholder="Quest Description">${quest.description || ''}</textarea>
+            </div>
+
+            <div class="form-group quest-objectives-container">
+                <label>Objectives:</label>
+                <div id="quest-objectives-list-${index}">
+                ${objectivesHTML}
+                </div>
+                <button type="button" class="add-objective-button" data-quest-index="${index}">Add Objective</button>
+            </div>
+
+            <div class="form-group quest-rewards-container">  <!-- New Rewards Container -->
+                <label>Rewards:</label>
+                <div id="quest-rewards-list-${index}">
+                ${rewardsHTML}
+                </div>
+                <button type="button" class="add-reward-button" data-quest-index="${index}">Add Reward</button>
+            </div>
+
+
+            <div class="form-group">
+                <label for="quest-timer-${index}">Timer (HH:MM:SS):</label>
+                <input type="text" class="quest-timer-input" id="quest-timer-${index}" value="${quest.timer || ''}" placeholder="HH:MM:SS (Optional)">
+            </div>
+
+            <div class="form-group">
+                <label for="quest-warning-${index}">Warning Message (Optional):</label>
+                <input type="text" class="quest-warning-input" id="quest-warning-${index}" value="${quest.warning || ''}" placeholder="Warning Message">
+            </div>
+
+            <button class="delete-skill-button delete-quest-button" data-quest-index="${index}">Delete Quest</button>
+            `;
+            return formRow;
+        }
+
+
+        // Function to populate quest lists (display and customize)
+        function populateQuestLists() {
+            questListDisplay.innerHTML = '';
+            questListCustomize.innerHTML = '';
+
+            questsData.forEach((quest, index) => {
+            questListDisplay.appendChild(renderQuestDisplay(quest, index));
+            const customizeForm = renderQuestCustomizeForm(quest, index);
+            questListCustomize.appendChild(customizeForm);
+            attachFormHandlers(customizeForm, index); // Attach form handlers for objectives and rewards
+
+            // Delete Quest Button Event Listener (reuse skill delete button style)
+            const deleteQuestButton = customizeForm.querySelector('.delete-quest-button');
+            deleteQuestButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                const questIndexToDelete = parseInt(this.dataset.questIndex);
+                if (!isNaN(questIndexToDelete)) {
+                    deleteQuest(questIndexToDelete);
+                }
+            });
+            });
+            loadCustomizeFormValues();
+        }
+
+
+        // Function to attach event handlers for Add/Delete Objective AND Reward buttons for a quest form
+        function attachFormHandlers(form, questIndex) {
+            // Objective Handlers
+            const addObjectiveButton = form.querySelector('.add-objective-button');
+            addObjectiveButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            addObjectiveInput(questIndex);
+            });
+
+            form.querySelectorAll('.delete-objective-button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                const objectiveIndexToDelete = parseInt(this.dataset.objectiveIndex);
+                deleteObjectiveInput(questIndex, objectiveIndexToDelete);
+            });
+            });
+
+            // Reward Handlers  - NEW REWARD HANDLERS ADDED HERE
+            const addRewardButton = form.querySelector('.add-reward-button');
+            addRewardButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            addRewardInput(questIndex);
+            });
+
+            form.querySelectorAll('.delete-reward-button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                const rewardIndexToDelete = parseInt(this.dataset.rewardIndex);
+                deleteRewardInput(questIndex, rewardIndexToDelete);
+            });
+            });
+        }
+
+
+        let objectiveCounter = 0; // Counter for unique objective IDs
+        let rewardCounter = 0; // Counter for unique reward IDs - NEW
+
+        // Function to add a new objective input to a quest form
+        function addObjectiveInput(questIndex) { /* Reused and modified */
+            const objectivesList = document.getElementById(`quest-objectives-list-${questIndex}`);
+            objectiveCounter++; // Increment counter for unique ID
+            const objectiveIndex = objectivesList.children.length; // Current number of objectives
+            const newObjectiveHTML = `
+            <div class="form-group objective-group">
+                <label for="quest-objective-${questIndex}-${objectiveIndex}" class="label">Objective ${objectiveIndex + 1}:</label>
+                <div style="display:flex; align-items: center; gap: 10px;">
+                    <input type="text" class="quest-objective-input" id="quest-objective-${questIndex}-${objectiveIndex}" value="" placeholder="Objective Description">
+                    <button type="button" class="delete-objective-button" data-quest-index="${questIndex}" data-objective-index="${objectiveIndex}">-</button>
+                </div>
+            </div>`;
+            objectivesList.innerHTML += newObjectiveHTML;
+
+            // Attach delete event listener to the newly created delete button
+            const newDeleteButton = objectivesList.lastElementChild.querySelector('.delete-objective-button');
+            newDeleteButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            const objectiveIndexToDelete = parseInt(this.dataset.objectiveIndex);
+            deleteObjectiveInput(questIndex, objectiveIndexToDelete);
+            });
+        }
+
+
+        // Function to delete an objective input from a quest form
+        function deleteObjectiveInput(questIndex, objectiveIndexToDelete) { /* Reused and modified */
+            const objectivesList = document.getElementById(`quest-objectives-list-${questIndex}`);
+            const objectiveGroupToDelete = objectivesList.children[objectiveIndexToDelete];
+            if (objectiveGroupToDelete) {
+            objectivesList.removeChild(objectiveGroupToDelete);
+
+            // Re-index remaining objectives for display labels (optional, for visual niceness)
+            Array.from(objectivesList.children).forEach((objectiveGroup, index) => {
+                const label = objectiveGroup.querySelector('label');
+                if (label) {
+                label.textContent = `Objective ${index + 1}:`;
+                }
+            });
+            }
+        }
+
+
+        // Function to add a new reward input to a quest form - NEW REWARD INPUT FUNCTION
+        function addRewardInput(questIndex) {
+            const rewardsList = document.getElementById(`quest-rewards-list-${questIndex}`);
+            rewardCounter++;
+            const rewardIndex = rewardsList.children.length;
+            const newRewardHTML = `
+            <div class="form-group reward-group">
+                <label for="quest-reward-${questIndex}-${rewardIndex}" class="label">Reward ${rewardIndex + 1}:</label>
+                <div style="display:flex; align-items: center; gap: 10px;">
+                    <input type="text" class="quest-reward-input" id="quest-reward-${questIndex}-${rewardIndex}" value="" placeholder="Reward Description">
+                    <button type="button" class="delete-reward-button" data-quest-index="${questIndex}" data-reward-index="${rewardIndex}">-</button>
+                </div>
+            </div>`;
+            rewardsList.innerHTML += newRewardHTML;
+
+            // Attach delete event listener to the new delete button
+            const newDeleteButton = rewardsList.lastElementChild.querySelector('.delete-reward-button');
+            newDeleteButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            const rewardIndexToDelete = parseInt(this.dataset.rewardIndex);
+            deleteRewardInput(questIndex, rewardIndexToDelete);
+            });
+        }
+
+
+        // Function to delete a reward input from a quest form - NEW REWARD DELETE FUNCTION
+        function deleteRewardInput(questIndex, rewardIndexToDelete) {
+            const rewardsList = document.getElementById(`quest-rewards-list-${questIndex}`);
+            const rewardGroupToDelete = rewardsList.children[rewardIndexToDelete];
+            if (rewardGroupToDelete) {
+            rewardsList.removeChild(rewardGroupToDelete);
+
+            // Re-index remaining rewards (optional)
+            Array.from(rewardsList.children).forEach((rewardGroup, index) => {
+                const label = rewardGroup.querySelector('label');
+                if (label) {
+                label.textContent = `Reward ${index + 1}:`;
+                }
+            });
+            }
+        }
+
+
+
+        // Function to load values from questsData into customization form inputs
+        function loadCustomizeFormValues() {
+            questsData.forEach((quest, index) => {
+            document.getElementById(`quest-icon-${index}`).value = quest.icon || 'fa-question';
+            document.getElementById(`quest-name-${index}`).value = quest.name || '';
+            document.getElementById(`quest-description-${index}`).value = quest.description || '';
+            document.getElementById(`quest-timer-${index}`).value = quest.timer || '';
+            document.getElementById(`quest-warning-${index}`).value = quest.warning || '';
+
+            // Load Objectives -  Assume objectives are already rendered in form by renderQuestCustomizeForm
+            // Load Rewards - Assume rewards are already rendered in form by renderQuestCustomizeForm
+            });
+        }
+
+
+        // Function to save values from customization forms back to questsData
+        function saveCustomizeFormValues() {
+            questListCustomize.querySelectorAll('.form-row').forEach(formRow => {
+            const index = parseInt(formRow.dataset.questIndex);
+            if (!isNaN(index) && questsData[index]) {
+                const questObjectives = [];
+                const objectivesList = formRow.querySelector(`#quest-objectives-list-${index}`);
+                if (objectivesList) {
+                Array.from(objectivesList.children).forEach(objectiveGroup => {
+                    const objectiveInput = objectiveGroup.querySelector('.quest-objective-input');
+                    if (objectiveInput) {
+                    questObjectives.push(objectiveInput.value);
+                    }
+                });
+                }
+
+                const questRewards = []; // New rewards saving
+                const rewardsList = formRow.querySelector(`#quest-rewards-list-${index}`);
+                if (rewardsList) {
+                Array.from(rewardsList.children).forEach(rewardGroup => {
+                    const rewardInput = rewardGroup.querySelector('.quest-reward-input');
+                    if (rewardInput) {
+                    questRewards.push(rewardInput.value);
+                    }
+                });
+                }
+
+
+                questsData[index] = {
+                icon: document.getElementById(`quest-icon-${index}`).value,
+                name: document.getElementById(`quest-name-${index}`).value,
+                description: document.getElementById(`quest-description-${index}`).value,
+                objectives: questObjectives,
+                rewards: questRewards, // Save rewards data
+                timer: document.getElementById(`quest-timer-${index}`).value,
+                warning: document.getElementById(`quest-warning-${index}`).value
+                };
+            }
+            });
+        }
+
+
+        // Function to delete a quest - Reused
+        function deleteQuest(questIndexToDelete) {
+            questsData.splice(questIndexToDelete, 1);
+            populateQuestLists();
+            showNotification('Quest deleted successfully!');
+        }
+
+
+        // Initial population on page load - Reused
+        populateQuestLists();
+
+
+        // Toggle customize panel - Reused
+        toggleCustomizeQuestsButton.addEventListener('click', function() {
+            customizeQuestsPanel.classList.toggle('hidden');
+        });
+
+        // Cancel customization - Reused
+        cancelCustomizeQuestsButton.addEventListener('click', function() {
+            customizeQuestsPanel.classList.add('hidden');
+        });
+
+        // Save customization - Reused and modified to call saveCustomizeFormValues
+        saveCustomizeQuestsButton.addEventListener('click', function() {
+            saveCustomizeFormValues();
+            populateQuestLists();
+            customizeQuestsPanel.classList.add('hidden');
+            showNotification('Quests updated successfully!');
+        });
+
+        // Add Quest Button functionality - Reused and modified to include rewards array in new quest object
+        addQuestButton.addEventListener('click', function() {
+            questsData.push({ icon: 'fa-question', name: 'New Quest', description: 'Quest Description', objectives: [], rewards: [], warning: '' }); // Added rewards: [] and warning: ''
+            populateQuestLists();
+        });
+
+
+        // Export as image - Reused
+        exportButton.addEventListener('click', function() {
+            loadingSpinner.style.display = 'block';
+            const questScreen = document.getElementById('quest-screen');
+            const options = {
+            scale: 2,
+            backgroundColor: null,
+            logging: false,
+            useCORS: true
+            };
+
+            html2canvas(questScreen, options).then(function(canvas) {
+            try {
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'quest-screen.png';
+                link.href = imgData;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('Image exported successfully!');
+            } catch (error) {
+                console.error('Export failed:', error);
+                showNotification('Export failed. Try again later.', true);
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+            }).catch(function(error) {
+            console.error('html2canvas error:', error);
+            showNotification('Export failed. Try again later.', true);
+            loadingSpinner.style.display = 'none';
+            });
+        });
+
+
+        function showNotification(message, isError = false) { /* Reused */
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? 'rgba(150, 0, 0, 0.8)' : 'var(--darker-bg)';
+            notification.classList.add('show');
+
+            setTimeout(() => {
+            notification.classList.remove('show');
+            }, 3000);
+        }
+        });
+    </script>
+    </body>
+    </html>
